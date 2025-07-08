@@ -387,6 +387,15 @@ def plot_results(date_obs, x_obs, u_obs, u_pred, epoch):
     print(f"The 3D comparison image is saved to: {plot_path}")
 
 # ===================== Main Function =====================
+def lr_schedule(epoch):
+    if epoch < 500:
+        return 1.0
+    elif epoch < 750:
+        return 0.5
+    elif epoch < 850:
+        return 0.1
+    else:
+        return 0.01
 def main():
     create_directory(SAVE_DIR)
     create_directory(PLOT_DIR)
@@ -447,6 +456,9 @@ def main():
             model.train()
             water_losses = []
             for inner_epoch in range(NUM_INNER_EPOCHS):
+                current_factor = lr_schedule(inner_epoch)
+                for param_group in optimizer_model.param_groups:
+                    param_group['lr'] = INITIAL_LR * current_factor
                 optimizer_model.zero_grad()
                 loss = observed_data_loss(model, t_obs, x_obs, u_obs)
                 loss.backward()
